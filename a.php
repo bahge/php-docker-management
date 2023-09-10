@@ -14,31 +14,4 @@
  */
 
 
-use Bahge\Dkman\Domain\ValidateCli\Concretes\ValidateCli;
 
-require_once('./vendor/autoload.php');
-
-// $diagnostic = new ValidateCli;
-// $config = $diagnostic->setArgs($argv)->argumentsInConfig();
-// if ( $diagnostic->isValid($config) === false 
-//         && is_array($config) 
-//         && is_array($config[0]['config'])
-//     ) echo $config[0]['config']['run'];
-
-try {
-    $validateCli = new ValidateCli;
-    $configs = $validateCli->setArgs($argv)->argumentsInConfig();
-    if (is_array($configs) && is_array($configs[0]['config'])) $run = $configs[0]['config']['run'];
-    if (is_array($configs) && is_array($configs[0]['config'])) $args = $configs[0]['config']['args'];
-    if (is_array($configs)) $position = $configs[0]['position'];
-    if ( ($args - $position) == 1 ) $position = $position + 1;
-    $class = new ReflectionClass('Bahge\Dkman' . $run);
-    $instance = $class->newInstance();
-    $property = $class->getProperty('path');
-    $property->setValue($instance, $argv[2]);
-    
-    $reflectionMethod = new ReflectionMethod('Bahge\Dkman' . $run, 'run');
-    $reflectionMethod->invoke($instance);
-} catch (\Exception $e) {
-    echo $e->getMessage();
-}
