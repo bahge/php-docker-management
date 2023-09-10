@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+        
+    # Mongo database service -> AWS
+    mongo:
+        image: mongo:5.0
+        container_name: mongo-fusion-arch
+        hostname: mongodb
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: ${DB_MONGO_USERNAME}
+            MONGO_INITDB_ROOT_PASSWORD: ${DB_MONGO_PASSWORD}
+        env_file:
+            - ./.env
+        restart: "unless-stopped"
+        ports:
+            - "${PORT_MONGO}:${PORT_MONGO}"
+        volumes:
+            - "${VOLUME_MONGO_DB}/db:/data/db"
+            - "${VOLUME_MONGO_DB}/dev.archive:/Databases/dev.archive"
+            - "${VOLUME_MONGO_DB}/production:/Databases/production"
+        networks:
+            - fusion-arch-network
+        
+networks:
+    fusion-arch-network:
+        driver: bridge
+        

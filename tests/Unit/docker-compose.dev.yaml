@@ -1,0 +1,69 @@
+version: "3.8"
+
+services:
+            
+    # RabbitMq service -> AWS
+    rabbitmq:
+        image: rabbitmq:3.8.25-management-alpine
+        container_name: cmp-rabbitmq
+        logging:
+            driver: "json-file"
+            options:
+                max-size: "200k"
+                max-file: "10"
+        hostname: rabbitmq
+        restart: "unless-stopped"
+        ports:
+            - "${RABBITMQ_PORT}:${RABBITMQ_PORT}"
+            - "${RABBITMQ_MANAGER_PORT}:${RABBITMQ_MANAGER_PORT}"
+        environment:
+            RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME}
+            RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+        volumes:
+            - "${VOLUME_RABBITMQ}/data/:/var/lib/rabbitmq/"
+            - "${VOLUME_RABBITMQ}/log/:/var/log/rabbitmq/"
+        networks:
+            - cmp-network
+
+    # Mongo database service -> AWS
+    mongo:
+        image: mongo:5.0
+        container_name: mongo
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: ${DB_MONGO_USERNAME}
+            MONGO_INITDB_ROOT_PASSWORD: ${DB_MONGO_PASSWORD}
+        env_file:
+            - ./.env
+        restart: unless-stopped
+        ports:
+            - "${PORT_MONGO}:${PORT_MONGO}"
+        volumes:
+            - "${VOLUME_MONGO_DB}/db:/data/db"
+            - "${VOLUME_MONGO_DB}/dev.archive:/Databases/dev.archive"
+            - "${VOLUME_MONGO_DB}/production:/Databases/production"
+        networks:
+            - cmp-network
+
+    # Mongo Express service
+    mongo-express:
+        image: mongo-express
+        container_name: mexpress
+        environment:
+            ME_CONFIG_MONGODB_ADMINUSERNAME: ${DB_MONGO_USERNAME}
+            ME_CONFIG_MONGODB_ADMINPASSWORD: ${DB_MONGO_PASSWORD}
+            ME_CONFIG_MONGODB_URL: "mongodb://${DB_MONGO_USERNAME}:${DB_MONGO_PASSWORD}@mongo:${PORT_MONGO}/?authSource=admin"
+            ME_CONFIG_BASICAUTH_USERNAME: ${MEXPRESS_USERNAME}
+            ME_CONFIG_BASICAUTH_PASSWORD: ${MEXPRESS_PASSWORD}
+        env_file:
+            - ./.env
+        links:
+            - mongo
+        restart: unless-stopped
+        ports:
+            - "${PORT_MONGO_EXPRESS}:${PORT_MONGO_EXPRESS}"
+        networks:
+            - cmp-network
+            
+networks:
+    cmp-network:
+        driver: bridge

@@ -1,0 +1,14 @@
+version: "3.8"
+
+services:
+
+    # PHP service
+    app:
+        image: umainexistente
+
+    # Nginx service -> loadbalance
+    nginx:
+        
+networks:
+    cmp-network:
+        driver: bridge
